@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CompareHub – Smart Product Comparison</title>
+<style>
+:root{
+  --bg:#f7f8fc; --surface:#ffffff; --text:#1c1f2e; --muted:#636b80;
+  --border:#e4e7f0; --blue:#4a5cf7; --purple:#8b5cf6; --accent-bg:#eef0ff;
+  --green:#18a957; --gold:#f5a623; --red:#e53e5a; --shadow:0 4px 20px rgba(30,30,60,.08);
+  color-scheme: light;
+}
+:root[data-theme="dark"]{
+  --bg:#13141f; --surface:#1c1e2e; --text:#edeefb; --muted:#9499b3;
+  --border:#2b2d42; --blue:#6c7bff; --purple:#a78bfa; --accent-bg:#232542;
+  --shadow:0 4px 20px rgba(0,0,0,.4); color-scheme: dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]):not([data-theme="dark"]){
+    --bg:#13141f; --surface:#1c1e2e; --text:#edeefb; --muted:#9499b3;
+    --border:#2b2d42; --blue:#6c7bff; --purple:#a78bfa; --accent-bg:#232542;
+    --shadow:0 4px 20px rgba(0,0,0,.4); color-scheme: dark;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+html{scroll-behavior:smooth; scroll-padding-top:env(safe-area-inset-top,0px);}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); transition:background .2s,color .2s;}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--surface);}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--surface);border-bottom:1px solid var(--border);}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:16px;flex-wrap:wrap}
+.logo{font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--blue),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+.navlinks{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.navlinks button{background:none;border:none;color:var(--text);font-size:.95rem;cursor:pointer;font-weight:500}
+.iconbtn{background:var(--accent-bg);border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-size:1rem;color:var(--text);position:relative}
+.badge{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;border-radius:50%;font-size:.65rem;padding:1px 5px;font-weight:700}
+.btn{background:linear-gradient(90deg,var(--blue),var(--purple));color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:600;cursor:pointer;font-size:.9rem}
+.btn.secondary{background:var(--accent-bg);color:var(--blue)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.hero{text-align:center;padding:60px 20px 40px}
+.hero h1{font-size:2.4rem;font-weight:800;margin-bottom:10px}
+.hero h1 span{background:linear-gradient(90deg,var(--blue),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);max-width:560px;margin:0 auto 26px;font-size:1.05rem}
+.searchbar{max-width:640px;margin:0 auto;display:flex;gap:8px;background:var(--surface);padding:8px;border-radius:14px;box-shadow:var(--shadow);position:relative}
+.searchbar input{flex:1;border:none;background:none;padding:10px 14px;font-size:1rem;color:var(--text);outline:none}
+.suggest{position:absolute;top:60px;left:0;right:0;background:var(--surface);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;z-index:30;text-align:left;display:none}
+.suggest div{padding:10px 16px;cursor:pointer;font-size:.9rem}
+.suggest div:hover{background:var(--accent-bg)}
+section{padding:36px 0}
+.sectitle{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px}
+.sectitle h2{font-size:1.4rem;font-weight:700}
+.sectitle span{color:var(--muted);font-size:.85rem}
+.catgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px}
+.catcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 10px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.catcard:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.catcard .ic{font-size:1.8rem;margin-bottom:6px}
+.catcard.active{border-color:var(--blue);background:var(--accent-bg)}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.filters select{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-size:.85rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px;position:relative;transition:transform .18s,box-shadow .18s;animation:fadeUp .35s ease both}
+.card:hover{transform:translateY(-5px);box-shadow:0 10px 26px rgba(74,92,247,.16)}
+.card .emoji{transition:transform .2s}
+.card:hover .emoji{transform:scale(1.08)}
+.cardbtns button{transition:background .15s,transform .1s}
+.cardbtns button:active{transform:scale(.96)}
+.btn{transition:transform .1s,box-shadow .15s}
+.btn:hover:not(:disabled){box-shadow:0 6px 18px rgba(74,92,247,.3);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0) scale(.98)}
+.catcard{transition:transform .15s,box-shadow .15s,border-color .15s}
+.card .emoji{font-size:2.6rem;text-align:center;padding:10px;background:var(--accent-bg);border-radius:12px;cursor:pointer}
+.card h3{font-size:.98rem;cursor:pointer}
+.card .brand{color:var(--muted);font-size:.78rem}
+.stars{color:var(--gold);font-size:.85rem}
+.price{font-weight:800;font-size:1.1rem}
+.orig{color:var(--muted);text-decoration:line-through;font-size:.8rem;margin-left:6px}
+.disc{color:var(--green);font-size:.78rem;font-weight:700}
+.cardbtns{display:flex;gap:6px;margin-top:4px}
+.cardbtns button{flex:1;padding:8px;border-radius:9px;font-size:.78rem;border:1px solid var(--border);background:var(--accent-bg);cursor:pointer;color:var(--text)}
+.cardbtns button.inwishlist{color:var(--red);border-color:var(--red)}
+.cardbtns button.incompare{color:var(--blue);border-color:var(--blue);font-weight:700}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .ic{font-size:2.5rem;margin-bottom:10px}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px}
+.how div{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center}
+.how .n{width:34px;height:34px;border-radius:50%;background:linear-gradient(90deg,var(--blue),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-weight:700}
+footer{border-top:1px solid var(--border);padding:30px 0;margin-top:30px}
+.footgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;font-size:.85rem}
+.footgrid h4{margin-bottom:10px;font-size:.9rem}
+.footgrid a{display:block;color:var(--muted);margin-bottom:6px}
+.compbar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:none;z-index:40;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.compbar.show{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.compchips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--accent-bg);border-radius:20px;padding:6px 12px;font-size:.78rem;display:flex;gap:6px;align-items:center}
+.chip b{cursor:pointer;color:var(--red)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;justify-content:center;z-index:60;overflow-y:auto;padding:30px 14px}
+.modal.show{display:flex;animation:fadeIn .2s ease}
+.modalbox{background:var(--surface);border-radius:18px;max-width:900px;width:100%;padding:26px;position:relative;margin:auto;animation:popIn .22s ease}
+.closex{position:absolute;top:16px;right:16px;background:var(--accent-bg);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:var(--surface)}
+.best{background:var(--accent-bg);font-weight:700;color:var(--green)}
+.recrow{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.reccard{background:var(--accent-bg);border-radius:12px;padding:14px;flex:1;min-width:200px}
+.reccard b{display:block;color:var(--blue);margin-bottom:4px}
+.reccard p{font-size:.8rem;color:var(--muted)}
+.pdimg{font-size:5rem;text-align:center;background:var(--accent-bg);border-radius:14px;padding:30px}
+.proscons{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.proscons div{background:var(--accent-bg);border-radius:12px;padding:12px}
+.proscons h5{margin-bottom:6px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
+  padding:10px 18px;border-radius:10px;font-size:.85rem;z-index:70;opacity:0;transition:opacity .25s,bottom .25s;pointer-events:none}
+.toast.show{opacity:1;bottom:100px}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.spin{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;margin:0 auto 10px;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.demo{text-align:center;font-size:.75rem;color:var(--muted);padding:8px;background:var(--accent-bg)}
+.page{display:none}
+.page.active{display:block;animation:fadeIn .25s ease}
+.navlinks button.active{color:var(--blue);font-weight:700}
+.userchip{display:flex;align-items:center;gap:8px;background:var(--accent-bg);border-radius:20px;padding:5px 12px 5px 5px;cursor:pointer;font-size:.82rem}
+.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem}
+.cambtn{background:var(--accent-bg);border:none;border-radius:10px;padding:0 12px;cursor:pointer;font-size:1.1rem;color:var(--text)}
+.photopreview{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;max-width:420px;margin-left:auto;margin-right:auto}
+.photopreview img{width:56px;height:56px;object-fit:cover;border-radius:8px}
+.profilecard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;max-width:480px;margin:0 auto;text-align:center;box-shadow:var(--shadow)}
+.profilecard .avatar{width:64px;height:64px;font-size:1.4rem;margin:0 auto 14px}
+.statrow{display:flex;justify-content:center;gap:28px;margin:18px 0}
+.statrow div{text-align:center}
+.statrow b{font-size:1.2rem;display:block}
+.statrow span{font-size:.75rem;color:var(--muted)}
+.authbox{display:grid;grid-template-columns:1fr 1fr;min-height:480px}
+.authbrand{background:linear-gradient(145deg,var(--blue),var(--purple));color:#fff;padding:36px 30px;display:flex;flex-direction:column;justify-content:space-between}
+.authbrand h3{font-size:1.5rem;margin-bottom:10px}
+.authbrand p{font-size:.85rem;opacity:.9;line-height:1.5}
+.authbrand ul{margin-top:20px;list-style:none;font-size:.82rem}
+.authbrand li{margin-bottom:10px;display:flex;gap:8px;align-items:flex-start}
+.authform{padding:34px 30px}
+.authtabs{display:flex;background:var(--accent-bg);border-radius:10px;padding:4px;margin-bottom:20px}
+.authtabs button{flex:1;border:none;background:none;padding:8px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted)}
+.authtabs button.active{background:var(--surface);color:var(--blue);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.field{margin-bottom:14px}
+.field label{font-size:.78rem;font-weight:600;display:block;margin-bottom:5px}
+.fieldwrap{position:relative}
+.fieldwrap input{width:100%;padding:11px 14px 11px 38px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.9rem}
+.fieldwrap input:focus{outline:none;border-color:var(--blue)}
+.fieldicon{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.6;font-size:.9rem}
+.eyetoggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;font-size:.9rem;color:var(--muted)}
+.fielderr{color:var(--red);font-size:.72rem;margin-top:4px;display:none}
+.remember{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);margin-bottom:16px}
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:.75rem}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+.socialbtn{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.85rem;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.socialbtn:hover{background:var(--accent-bg)}
+.loader{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:sp .6s linear infinite}
+.databadge{display:inline-block;background:var(--gold);color:#3a2a00;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;vertical-align:middle;margin-left:6px}
+.modetag{display:inline-block;background:var(--accent-bg);color:var(--blue);font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px}
+@media(max-width:620px){.authbox{grid-template-columns:1fr}.authbrand{display:none}}
+@media(max-width:640px){.hero h1{font-size:1.7rem}.navlinks{gap:10px}}
+</style>
+</head>
+<body>
+<div class="demo">⚠️ Demo data for presentation purposes — prices, ratings & reviews are not live or verified.</div>
+<header><div class="wrap"><nav>
+  <div class="logo">CompareHub</div>
+  <div class="navlinks">
+    <button onclick="showPage('home')" data-page="home" data-i18n="nav_home">Home</button>
+    <button onclick="showPage('categories')" data-page="categories" data-i18n="nav_categories">Categories</button>
+    <button onclick="showPage('browse')" data-page="browse" data-i18n="nav_browse">Browse</button>
+    <button onclick="showPage('profile')" data-page="profile" data-i18n="nav_profile">Profile</button>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="iconbtn" onclick="openSettings()" title="Settings">⚙️</button>
+    <button class="iconbtn" onclick="toggleTheme()" title="Dark mode">🌓</button>
+    <button class="iconbtn" onclick="openWishlist()">❤️<span class="badge" id="wbadge" style="display:none">0</span></button>
+    <button class="iconbtn" onclick="openSaved()">💾<span class="badge" id="sbadge" style="display:none">0</span></button>
+    <button class="btn secondary" onclick="openAssistant()">🤖 <span data-i18n="nav_ai">AI Assistant</span></button>
+    <div id="authArea"></div>
+  </div>
+</nav></div></header>
+
+<div class="page active" id="page-home">
+<section id="home" class="hero wrap">
+  <h1 id="heroTitle"><b style="font-weight:800" data-i18n="hero_title1">Stop Searching Everywhere.</b> <span id="heroTitle2" data-i18n="hero_title2">Compare Everything Here.</span></h1>
+  <p data-i18n="hero_sub">Compare prices, quality, features, ratings and reviews from multiple shopping platforms with one simple search.</p>
+  <p style="font-size:.78rem;color:var(--muted);margin-top:-18px;margin-bottom:18px" data-i18n="tagline">One Search. Every Store. Smarter Shopping.</p>
+  <div class="searchbar">
+    <input id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="Search products like laptops, smartphones, headphones..." oninput="onSearchInput()" onkeydown="if(event.key==='Enter')doSearch()">
+    <button class="cambtn" onclick="document.getElementById('photoInput').click()" title="Search by photo">📷</button>
+    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
+    <button class="btn" onclick="doSearch()" data-i18n="search_btn">Search</button>
+    <div class="suggest" id="suggestBox"></div>
+  </div>
+  <div id="photoPreviewArea"></div>
+  <div id="popularSearches" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px"></div>
+</section>
+
+<section id="categories" class="wrap">
+  <div class="sectitle"><h2 data-i18n="popular_categories">Popular Categories</h2></div>
+  <div class="catgrid" id="catGrid"></div>
+</section>
+
+<section class="wrap">
+  <div class="sectitle"><h2>🔥 <span data-i18n="trending">Trending Products</span></h2></div>
+  <div class="grid" id="trendGrid"></div>
+</section>
+
+<section class="wrap" id="recentSec" style="display:none">
+  <div class="sectitle"><h2>🕒 <span data-i18n="recently_viewed">Recently Viewed</span></h2></div>
+  <div class="grid" id="recentGrid"></div>
+</section>
+
+<section class="wrap" id="recentCompSec" style="display:none">
+  <div class="sectitle"><h2>⚖️ <span data-i18n="recently_compared">Recently Compared</span></h2></div>
+  <div id="recentCompList"></div>
+</section>
+
+<section class="wrap">
+  <div class="sectitle"><h2 data-i18n="how_it_works">How It Works</h2></div>
+  <div class="how">
+    <div><div class="n">1</div><b data-i18n="how1_t">Search</b><p style="color:var(--muted);font-size:.85rem;margin-top:6px" data-i18n="how1_d">Find products by name, brand or category.</p></div>
+    <div><div class="n">2</div><b data-i18n="how2_t">Select</b><p style="color:var(--muted);font-size:.85rem;margin-top:6px" data-i18n="how2_d">Add 2–4 products to your comparison.</p></div>
+    <div><div class="n">3</div><b data-i18n="how3_t">Compare</b><p style="color:var(--muted);font-size:.85rem;margin-top:6px" data-i18n="how3_d">View a detailed side-by-side table.</p></div>
+    <div><div class="n">4</div><b data-i18n="how4_t">Decide</b><p style="color:var(--muted);font-size:.85rem;margin-top:6px" data-i18n="how4_d">Get a data-based recommendation.</p></div>
+  </div>
+</section>
+</div>
+
+<div class="page" id="page-browse">
+<section class="wrap" id="results" style="padding-top:36px">
+  <button class="btn secondary" style="margin-bottom:14px;padding:7px 14px;font-size:.8rem" onclick="showPage('home')">← <span data-i18n="back_home">Back to Home</span></button>
+  <div class="sectitle"><h2 id="resultsTitle" data-i18n="all_products">All Products</h2><span id="resultsCount"></span></div>
+  <div class="filters">
+    <select id="catFilter" onchange="renderResults()"><option value="" data-i18n="all_categories">All Categories</option></select>
+    <select id="brandFilter" onchange="renderResults()"><option value="" data-i18n="all_brands">All Brands</option></select>
+    <select id="priceFilter" onchange="renderResults()">
+      <option value="" data-i18n="any_price">Any Price</option>
+      <option value="0-2000">Under ₹2,000</option>
+      <option value="2000-10000">₹2,000 – ₹10,000</option>
+      <option value="10000-50000">₹10,000 – ₹50,000</option>
+      <option value="50000-999999">Above ₹50,000</option>
+    </select>
+    <select id="sortFilter" onchange="renderResults()">
+      <option value="" data-i18n="sort_by">Sort by</option>
+      <option value="priceAsc" data-i18n="price_low_high">Price: Low to High</option>
+      <option value="priceDesc" data-i18n="price_high_low">Price: High to Low</option>
+      <option value="ratingDesc" data-i18n="rating_high_low">Rating: High to Low</option>
+      <option value="popular" data-i18n="popularity">Popularity</option>
+    </select>
+    <select id="ratingFilter" onchange="renderResults()">
+      <option value="" data-i18n="any_rating">Any Rating</option>
+      <option value="4">4★ +</option>
+      <option value="3">3★ +</option>
+    </select>
+    <button class="btn secondary" onclick="resetFilters()" style="padding:8px 14px;font-size:.8rem" data-i18n="reset">Reset</button>
+  </div>
+  <div id="resultsGrid" class="grid"></div>
+</section>
+</div>
+
+<div class="page" id="page-profile">
+<section class="wrap" style="padding-top:36px" id="profileSection"></section>
+</div>
+
+<footer><div class="wrap footgrid">
+  <div><h4>CompareHub</h4><a href="#home" data-i18n="tagline">One Search. Every Store. Smarter Shopping.</a></div>
+  <div><h4 data-i18n="company">Company</h4><a href="#" onclick="return false" data-i18n="about_us">About Us</a><a href="#" onclick="return false" data-i18n="contact">Contact</a></div>
+  <div><h4 data-i18n="legal">Legal</h4><a href="#" onclick="return false" data-i18n="privacy">Privacy Policy</a><a href="#" onclick="return false" data-i18n="help">Help</a></div>
+</div></footer>
+
+<div class="compbar" id="compbar">
+  <div class="compchips" id="compChips"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn secondary" onclick="clearCompare()" data-i18n="clear_all">Clear All</button>
+    <button class="btn" id="compareBtn" onclick="openCompare()" disabled data-i18n="compare">Compare</button>
+  </div>
+</div>
+
+<div class="modal" id="detailModal"><div class="modalbox" id="detailBox"></div></div>
+<div class="modal" id="compareModal"><div class="modalbox" id="compareBox" style="max-width:1000px"></div></div>
+<div class="modal" id="assistantModal"><div class="modalbox">
+  <button class="closex" onclick="closeModal('assistantModal')">✕</button>
+  <h2 style="margin-bottom:6px">🤖 AI Shopping Assistant</h2>
+  <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px">Ask things like "best phone under 25000" or "best laptop for students". <span class="databadge" style="background:var(--gold)">RULE-BASED DEMO</span> These are simple rule-based picks from the demo product data on this site — not a connected AI model or real-time market data.</p>
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <input id="aiInput" placeholder="e.g. best headphones under 3000" style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text)" onkeydown="if(event.key==='Enter')askAssistant()">
+    <button class="btn" onclick="askAssistant()">Ask</button>
+  </div>
+  <div id="aiResult"></div>
+</div></div>
+<div class="modal" id="wishlistModal"><div class="modalbox"><button class="closex" onclick="closeModal('wishlistModal')">✕</button><h2 style="margin-bottom:14px">❤️ Wishlist</h2><div class="grid" id="wishGrid"></div></div></div>
+<div class="modal" id="savedModal"><div class="modalbox"><button class="closex" onclick="closeModal('savedModal')">✕</button><h2 style="margin-bottom:14px">💾 Saved Comparisons</h2><div id="savedList"></div></div></div>
+<div class="modal" id="loginModal"><div class="modalbox" style="max-width:760px;padding:0;overflow:hidden">
+  <button class="closex" style="z-index:5" onclick="closeModal('loginModal')">✕</button>
+  <div class="authbox">
+    <div class="authbrand">
+      <div>
+        <div style="font-size:2.2rem;margin-bottom:10px">🛍️</div>
+        <h3>CompareHub</h3>
+        <p data-i18n="hero_sub">Compare prices, quality, features, ratings and reviews from multiple shopping platforms with one simple search.</p>
+      </div>
+      <ul>
+        <li>✅ <span id="authPerk1">Multi-store price comparison</span></li>
+        <li>✅ <span id="authPerk2">AI shopping assistant</span></li>
+        <li>✅ <span id="authPerk3">Wishlist & saved comparisons</span></li>
+      </ul>
+    </div>
+    <div class="authform">
+      <div class="authtabs">
+        <button id="tabLogin" class="active" onclick="switchAuthTab('login')" data-i18n="login_tab">Log In</button>
+        <button id="tabSignup" onclick="switchAuthTab('signup')" data-i18n="signup_tab">Create Account</button>
+      </div>
+      <div class="field" id="nameField">
+        <label data-i18n="full_name">Full Name</label>
+        <div class="fieldwrap"><span class="fieldicon">👤</span><input id="loginName" placeholder="Jordan Sharma"></div>
+        <div class="fielderr" id="nameErr" data-i18n="name_err">Please enter your name</div>
+      </div>
+      <div class="field">
+        <label data-i18n="email_label">Email</label>
+        <div class="fieldwrap"><span class="fieldicon">✉️</span><input id="loginEmail" type="email" placeholder="you@example.com"></div>
+        <div class="fielderr" id="emailErr" data-i18n="email_err">Please enter a valid email</div>
+      </div>
+      <div class="field">
+        <label data-i18n="password_label">Password</label>
+        <div class="fieldwrap"><span class="fieldicon">🔒</span><input id="loginPass" type="password" placeholder="••••••••">
+          <button type="button" class="eyetoggle" onclick="togglePw()">👁️</button></div>
+        <div class="fielderr" id="passErr" data-i18n="pass_err">Password must be at least 6 characters</div>
+      </div>
+      <label class="remember"><input type="checkbox" id="rememberMe" checked> <span data-i18n="remember_me">Remember me on this device</span></label>
+      <button class="btn" style="width:100%" id="loginSubmitBtn" onclick="doLogin()" data-i18n="login_btn">Log In</button>
+      <div class="divider" data-i18n="or_continue">or continue with</div>
+      <button class="socialbtn" onclick="socialDemo()">🔵 <span data-i18n="continue_google">Continue with Google</span></button>
+      <button class="socialbtn" onclick="socialDemo()"> <span data-i18n="continue_apple">Continue with Apple</span></button>
+      <p style="color:var(--muted);font-size:.7rem;margin-top:14px;text-align:center" data-i18n="login_note">Demo login only — stored on this device, not a real account system.</p>
+    </div>
+  </div>
+</div></div>
+<div class="modal" id="settingsModal"><div class="modalbox" style="max-width:420px">
+  <button class="closex" onclick="closeModal('settingsModal')">✕</button>
+  <h2 style="margin-bottom:18px" data-i18n="settings_title">⚙️ Settings</h2>
+  <div style="margin-bottom:18px">
+    <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:8px" data-i18n="language">Language</label>
+    <select id="langSelect" onchange="setLang(this.value)" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+      <option value="en">English</option>
+      <option value="hi">हिंदी (Hindi)</option>
+    </select>
+  </div>
+  <div style="margin-bottom:18px">
+    <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:8px" data-i18n="dark_mode">Dark Mode</label>
+    <button class="btn secondary" onclick="toggleTheme()">🌓 <span data-i18n="toggle_theme">Toggle Theme</span></button>
+  </div>
+  <div>
+    <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:8px" data-i18n="your_data">Your Data</label>
+    <button class="btn secondary" onclick="clearAllData()">🗑️ <span data-i18n="clear_data">Clear Wishlist, History & Saved Comparisons</span></button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = [
+  {id:'smartphones',name:'Smartphones',icon:'📱'},
+  {id:'laptops',name:'Laptops',icon:'💻'},
+  {id:'headphones',name:'Headphones',icon:'🎧'},
+  {id:'smartwatches',name:'Watches',icon:'⌚'},
+  {id:'tablets',name:'Tablets',icon:'📲'},
+  {id:'cameras',name:'Cameras',icon:'📷'},
+  {id:'appliances',name:'Home Appliances',icon:'🏠'},
+  {id:'accessories',name:'Accessories',icon:'🔌'},
+  {id:'clothing',name:'Clothing',icon:'👕'},
+  {id:'shoes',name:'Shoes',icon:'👟'},
+  {id:'beauty',name:'Beauty',icon:'💄'},
+  {id:'furniture',name:'Furniture',icon:'🛋️'},
+  {id:'grocery',name:'Grocery',icon:'🛒'},
+  {id:'bags',name:'Bags',icon:'👜'},
+  {id:'sports',name:'Sports & Fitness',icon:'🏋️'},
+  {id:'toys',name:'Toys',icon:'🧸'},
+  {id:'books',name:'Books',icon:'📚'}
+];
+const STORES = ['Amazon India','Flipkart','Myntra','Croma','Reliance Digital','Tata CLiQ'];
+const PRODUCTS = [
+  {id:1,cat:'smartphones',brand:'Samsung',name:'Galaxy S Series Pro',emoji:'📱',price:74999,orig:84999,rating:4.5,reviews:1280,ram:'12GB',storage:'256GB',processor:'Snapdragon 8 Gen3',battery:'5000mAh',display:'6.8" AMOLED',warranty:'1 Year',features:['5G','120Hz Display','IP68'],pros:['Great display','Fast charging'],cons:['Expensive']},
+  {id:2,cat:'smartphones',brand:'Apple',name:'iPhone 16',emoji:'📱',price:79900,orig:79900,rating:4.7,reviews:2100,ram:'8GB',storage:'256GB',processor:'A18 Bionic',battery:'4500mAh',display:'6.1" OLED',warranty:'1 Year',features:['5G','Face ID','MagSafe'],pros:['iOS ecosystem','Camera quality'],cons:['No charger included']},
+  {id:3,cat:'smartphones',brand:'OnePlus',name:'OnePlus 13',emoji:'📱',price:54999,orig:59999,rating:4.4,reviews:860,ram:'16GB',storage:'256GB',processor:'Snapdragon 8 Gen3',battery:'5400mAh',display:'6.7" AMOLED',warranty:'1 Year',features:['100W Charging','5G'],pros:['Fast charging','Value for money'],cons:['Camera average']},
+  {id:4,cat:'smartphones',brand:'Redmi',name:'Redmi Note 14 Pro',emoji:'📱',price:22999,orig:26999,rating:4.2,reviews:3400,ram:'8GB',storage:'128GB',processor:'Dimensity 7300',battery:'5100mAh',display:'6.67" AMOLED',warranty:'1 Year',features:['Budget friendly','5G'],pros:['Affordable','Good battery'],cons:['Build quality']},
+  {id:5,cat:'laptops',brand:'HP',name:'Pavilion 15',emoji:'💻',price:58999,orig:65999,rating:4.1,reviews:540,ram:'16GB',storage:'512GB SSD',processor:'Intel i5 13th Gen',battery:'8hrs',display:'15.6" FHD',warranty:'1 Year',features:['Backlit Keyboard','Fingerprint'],pros:['Good build','Light'],cons:['Average speakers']},
+  {id:6,cat:'laptops',brand:'Dell',name:'Inspiron 14',emoji:'💻',price:62999,orig:69999,rating:4.3,reviews:710,ram:'16GB',storage:'512GB SSD',processor:'Intel i5 13th Gen',battery:'9hrs',display:'14" FHD+',warranty:'1 Year',features:['Thin bezel','USB-C'],pros:['Battery life','Display'],cons:['Limited ports']},
+  {id:7,cat:'laptops',brand:'Lenovo',name:'IdeaPad Slim 5',emoji:'💻',price:54999,orig:60999,rating:4.0,reviews:420,ram:'8GB',storage:'512GB SSD',processor:'Ryzen 5 7530U',battery:'7hrs',display:'15.6" FHD',warranty:'1 Year',features:['Lightweight','Rapid Charge'],pros:['Affordable','Light'],cons:['8GB RAM only']},
+  {id:8,cat:'laptops',brand:'ASUS',name:'Vivobook Pro 15',emoji:'💻',price:71999,orig:79999,rating:4.4,reviews:390,ram:'16GB',storage:'1TB SSD',processor:'Ryzen 7 7735H',battery:'8hrs',display:'15.6" OLED',warranty:'1 Year',features:['OLED Display','NumberPad'],pros:['Display quality','Performance'],cons:['Heavier']},
+  {id:9,cat:'headphones',brand:'Sony',name:'WH-1000XM5',emoji:'🎧',price:26999,orig:34999,rating:4.8,reviews:1800,ram:'-',storage:'-',processor:'-',battery:'30hrs',display:'-',warranty:'1 Year',features:['ANC','Hi-Res Audio'],pros:['Best ANC','Comfort'],cons:['Price']},
+  {id:10,cat:'headphones',brand:'boAt',name:'Rockerz 550',emoji:'🎧',price:1799,orig:2999,rating:4.0,reviews:9200,ram:'-',storage:'-',processor:'-',battery:'20hrs',display:'-',warranty:'1 Year',features:['Bluetooth 5.0','Padded Ear Cushions'],pros:['Cheap','Decent bass'],cons:['No ANC']},
+  {id:11,cat:'headphones',brand:'JBL',name:'Tune 760NC',emoji:'🎧',price:4499,orig:5999,rating:4.3,reviews:3100,ram:'-',storage:'-',processor:'-',battery:'35hrs',display:'-',warranty:'1 Year',features:['ANC','Foldable'],pros:['Battery life','Comfort'],cons:['Mic average']},
+  {id:12,cat:'headphones',brand:'Noise',name:'Noise Buds VS104',emoji:'🎧',price:1299,orig:2499,rating:3.9,reviews:5600,ram:'-',storage:'-',processor:'-',battery:'40hrs (case)',display:'-',warranty:'1 Year',features:['Low latency','IPX5'],pros:['Budget pick'],cons:['Average ANC']},
+  {id:13,cat:'smartwatches',brand:'Samsung',name:'Galaxy Watch 7',emoji:'⌚',price:28999,orig:32999,rating:4.4,reviews:640,ram:'-',storage:'16GB',processor:'Exynos W1000',battery:'40hrs',display:'1.5" AMOLED',warranty:'1 Year',features:['ECG','GPS'],pros:['Health tracking'],cons:['Battery life']},
+  {id:14,cat:'tablets',brand:'Apple',name:'iPad 11th Gen',emoji:'📲',price:38900,orig:41900,rating:4.6,reviews:980,ram:'8GB',storage:'128GB',processor:'A16 Bionic',battery:'10hrs',display:'10.9" Liquid Retina',warranty:'1 Year',features:['Apple Pencil support'],pros:['Performance','Ecosystem'],cons:['Accessories extra']},
+  {id:15,cat:'cameras',brand:'Canon',name:'EOS R50',emoji:'📷',price:64999,orig:72999,rating:4.5,reviews:310,ram:'-',storage:'SD Card',processor:'DIGIC X',battery:'370 shots',display:'3" Vari-angle',warranty:'1 Year',features:['4K Video','Mirrorless'],pros:['Image quality'],cons:['Lens extra cost']},
+  {id:16,cat:'appliances',brand:'LG',name:'1.5 Ton Split AC',emoji:'🏠',price:36999,orig:44999,rating:4.2,reviews:1200,ram:'-',storage:'-',processor:'Inverter',battery:'-',display:'-',warranty:'5 Years',features:['Dual Inverter','AI Cooling'],pros:['Energy efficient'],cons:['Installation cost']},
+  {id:17,cat:'accessories',brand:'Anker',name:'737 Power Bank',emoji:'🔌',price:5999,orig:7999,rating:4.5,reviews:1500,ram:'-',storage:'-',processor:'-',battery:'24000mAh',display:'LED',warranty:'1.5 Years',features:['140W output'],pros:['Fast charging'],cons:['Heavy']},
+  {id:18,cat:'clothing',brand:'H&M',name:'Cotton Casual Shirt',emoji:'👕',price:1299,orig:1999,rating:4.1,reviews:640,fabric:'100% Cotton',fit:'Regular Fit',care:'Machine wash',warranty:'7-day return',features:['Breathable','Pre-shrunk'],pros:['Comfortable','Good fabric'],cons:['Runs slightly small']},
+  {id:19,cat:'shoes',brand:'Nike',name:'Revolution 7 Running Shoes',emoji:'👟',price:3495,orig:3995,rating:4.4,reviews:2100,material:'Mesh upper',sole:'Foam midsole',comfort:'Lightweight cushioning',warranty:'6 Months',features:['Breathable mesh','Lightweight'],pros:['Comfort','Grip'],cons:['Limited colours']},
+  {id:20,cat:'shoes',brand:'Puma',name:'Softride Sneakers',emoji:'👟',price:2799,orig:3999,rating:4.2,reviews:1340,material:'Synthetic',sole:'Rubber sole',comfort:'Soft cushioned footbed',warranty:'6 Months',features:['Shock absorption'],pros:['Value for money'],cons:['Sizing runs large']},
+  {id:21,cat:'beauty',brand:'Nykaa',name:'Vitamin C Face Serum',emoji:'💄',price:599,orig:899,rating:4.3,reviews:3200,ingredients:'Vitamin C, Hyaluronic Acid',skinType:'All skin types',quantity:'30ml',usage:'Apply nightly',warranty:'7-day return',features:['Brightening','Non-greasy'],pros:['Visible glow'],cons:['Mild fragrance']},
+  {id:22,cat:'furniture',brand:'Urban Ladder',name:'Oakland 2-Seater Sofa',emoji:'🛋️',price:18999,orig:24999,rating:4.3,reviews:280,material:'Fabric upholstery',dimensions:'150x80x85 cm',weight:'32kg',warranty:'1 Year',features:['Sturdy frame'],pros:['Comfortable','Good finish'],cons:['Assembly required']},
+  {id:23,cat:'bags',brand:'American Tourister',name:'Trek Backpack',emoji:'👜',price:1499,orig:2199,rating:4.2,reviews:910,material:'Polyester',dimensions:'45x30x20 cm',weight:'0.6kg',warranty:'1 Year',features:['Water resistant','Laptop sleeve'],pros:['Durable','Spacious'],cons:['Basic looks']},
+  {id:24,cat:'sports',brand:'Decathlon',name:'Yoga Mat Pro',emoji:'🏋️',price:999,orig:1499,rating:4.5,reviews:1800,material:'TPE foam',dimensions:'183x61 cm',weight:'1.2kg',warranty:'6 Months',features:['Non-slip','Eco-friendly'],pros:['Good grip'],cons:['Slight smell initially']},
+  {id:25,cat:'smartwatches',brand:'Apple',name:'Apple Watch SE',emoji:'⌚',price:28900,orig:32900,rating:4.6,reviews:980,ram:'-',storage:'32GB',processor:'S8 SiP',battery:'18hrs',display:'1.6" Retina',warranty:'1 Year',features:['Fall detection','GPS'],pros:['Smooth performance'],cons:['No always-on display']},
+  {id:26,cat:'smartwatches',brand:'Noise',name:'ColorFit Pro 5',emoji:'⌚',price:2499,orig:4999,rating:4.0,reviews:4100,ram:'-',storage:'-',processor:'-',battery:'7 days',display:'1.85" AMOLED',warranty:'1 Year',features:['Bluetooth calling'],pros:['Budget friendly'],cons:['App lag']},
+  {id:27,cat:'tablets',brand:'Samsung',name:'Galaxy Tab S9 FE',emoji:'📲',price:36999,orig:42999,rating:4.4,reviews:520,ram:'8GB',storage:'128GB',processor:'Exynos 1380',battery:'8hrs',display:'10.9" LCD',warranty:'1 Year',features:['S Pen included'],pros:['Good display'],cons:['Average speakers']},
+  {id:28,cat:'tablets',brand:'Lenovo',name:'Tab M10 Plus',emoji:'📲',price:15999,orig:19999,rating:3.9,reviews:1100,ram:'4GB',storage:'128GB',processor:'MediaTek Helio',battery:'7hrs',display:'10.6" FHD',warranty:'1 Year',features:['Kids mode'],pros:['Affordable'],cons:['Slower processor']},
+  {id:29,cat:'cameras',brand:'Nikon',name:'Z50 Mirrorless',emoji:'📷',price:71999,orig:79999,rating:4.4,reviews:210,ram:'-',storage:'SD Card',processor:'EXPEED 6',battery:'320 shots',display:'3.2" Tilt',warranty:'2 Years',features:['4K Video'],pros:['Sharp images'],cons:['Limited lens range']},
+  {id:30,cat:'cameras',brand:'GoPro',name:'HERO12 Black',emoji:'📷',price:39990,orig:44990,rating:4.5,reviews:650,ram:'-',storage:'SD Card',processor:'GP2',battery:'100 min',display:'2.27" Touch',warranty:'1 Year',features:['Waterproof','5.3K Video'],pros:['Rugged build'],cons:['Battery drains fast']},
+  {id:31,cat:'appliances',brand:'Samsung',name:'8kg Front Load Washing Machine',emoji:'🏠',price:32999,orig:39999,rating:4.3,reviews:870,ram:'-',storage:'-',processor:'Inverter',battery:'-',display:'LED',warranty:'2 Years',features:['Steam wash'],pros:['Energy efficient'],cons:['Longer wash cycles']},
+  {id:32,cat:'appliances',brand:'Prestige',name:'Mixer Grinder 750W',emoji:'🏠',price:2799,orig:3499,rating:4.2,reviews:2600,ram:'-',storage:'-',processor:'750W Motor',battery:'-',display:'-',warranty:'2 Years',features:['3 Jars'],pros:['Durable motor'],cons:['Noisy']},
+  {id:33,cat:'accessories',brand:'boAt',name:'Type-C Fast Charger',emoji:'🔌',price:699,orig:1199,rating:4.1,reviews:3300,ram:'-',storage:'-',processor:'-',battery:'-',display:'-',warranty:'6 Months',features:['33W fast charge'],pros:['Compact'],cons:['Cable sold separately']},
+  {id:34,cat:'clothing',brand:'Levis',name:'Slim Fit Jeans',emoji:'👖',price:2199,orig:2999,rating:4.3,reviews:1450,fabric:'Denim, 98% Cotton',fit:'Slim Fit',care:'Machine wash cold',warranty:'15-day return',features:['Stretch fit'],pros:['Comfortable fit'],cons:['Colour fades over washes']},
+  {id:35,cat:'clothing',brand:'Allen Solly',name:'Formal Blazer',emoji:'🧥',price:3499,orig:4999,rating:4.1,reviews:380,fabric:'Polyester blend',fit:'Regular Fit',care:'Dry clean only',warranty:'15-day return',features:['Wrinkle resistant'],pros:['Sharp look'],cons:['Pricey for the fabric']},
+  {id:36,cat:'beauty',brand:'Mamaearth',name:'Onion Hair Oil',emoji:'💄',price:349,orig:499,rating:4.2,reviews:5200,ingredients:'Onion extract, Redensyl',skinType:'All hair types',quantity:'150ml',usage:'Apply twice a week',warranty:'7-day return',features:['Sulphate-free'],pros:['Reduces hairfall'],cons:['Strong onion smell']},
+  {id:37,cat:'bags',brand:'Wildcraft',name:'Wanderer Duffel Bag',emoji:'👜',price:1899,orig:2599,rating:4.3,reviews:610,material:'Nylon',dimensions:'55x30x25 cm',weight:'0.8kg',warranty:'1 Year',features:['Water resistant'],pros:['Spacious','Durable'],cons:['No wheels']},
+  {id:38,cat:'sports',brand:'Nivia',name:'Football Size 5',emoji:'⚽',price:699,orig:999,rating:4.0,reviews:1340,material:'PU synthetic',dimensions:'Size 5',weight:'430g',warranty:'3 Months',features:['All-weather'],pros:['Good grip'],cons:['Loses shape over time']},
+  {id:39,cat:'toys',brand:'LEGO',name:'Classic Creative Brick Box',emoji:'🧸',price:2499,orig:2999,rating:4.8,reviews:920,material:'ABS plastic',dimensions:'484 pieces',weight:'1.1kg',warranty:'7-day return',features:['Builds 3+ models'],pros:['High quality pieces'],cons:['Pricey per piece']},
+  {id:40,cat:'toys',brand:'Hot Wheels',name:'20-Car Gift Pack',emoji:'🚗',price:1499,orig:1999,rating:4.5,reviews:1600,material:'Die-cast metal',dimensions:'20 cars',weight:'0.9kg',warranty:'7-day return',features:['Collectible'],pros:['Great value pack'],cons:['Small parts, not for toddlers']},
+  {id:41,cat:'books',brand:'Penguin',name:'Atomic Habits',emoji:'📚',price:399,orig:599,rating:4.7,reviews:12400,material:'Paperback',dimensions:'320 pages',weight:'250g',warranty:'7-day return',features:['Bestseller'],pros:['Practical advice'],cons:['Repetitive in parts']},
+  {id:42,cat:'books',brand:'HarperCollins',name:'The Alchemist',emoji:'📚',price:250,orig:399,rating:4.6,reviews:9800,material:'Paperback',dimensions:'208 pages',weight:'180g',warranty:'7-day return',features:['Classic fiction'],pros:['Short, inspiring read'],cons:['Simple prose style']},
+  {id:43,cat:'grocery',brand:'Tata',name:'Tata Sampann Toor Dal 1kg',emoji:'🛒',price:165,orig:189,rating:4.4,reviews:2100,material:'-',dimensions:'1kg pack',weight:'1kg',warranty:'-',features:['Unpolished'],pros:['Good quality'],cons:['Price varies by season']},
+  {id:44,cat:'grocery',brand:'Nescafe',name:'Nescafe Classic Coffee 200g',emoji:'☕',price:449,orig:499,rating:4.5,reviews:3400,material:'-',dimensions:'200g jar',weight:'200g',warranty:'-',features:['Instant coffee'],pros:['Strong aroma'],cons:['Bitter for some']}
+];
+const QUALITY_FIELDS = {
+  smartphones:['ram','storage','processor','battery','display'],
+  laptops:['ram','storage','processor','battery','display'],
+  headphones:['battery'],
+  smartwatches:['battery','display'],
+  tablets:['ram','storage','processor','battery','display'],
+  cameras:['battery','storage'],
+  appliances:[],
+  accessories:['battery'],
+  clothing:['fabric','fit','care'],
+  shoes:['material','sole','comfort'],
+  beauty:['ingredients','skinType','quantity','usage'],
+  furniture:['material','dimensions','weight'],
+  bags:['material','dimensions','weight'],
+  sports:['material','dimensions','weight'],
+  grocery:[],toys:[],books:[]
+};
+let state = {compare:[],wishlist:[],recent:[],recentCompares:[],searchHistory:[],savedComparisons:[]};
+try{
+  state.compare = JSON.parse(localStorage.getItem('ce_compare')||'[]');
+  state.wishlist = JSON.parse(localStorage.getItem('ce_wishlist')||'[]');
+  state.recent = JSON.parse(localStorage.getItem('ce_recent')||'[]');
+  state.recentCompares = JSON.parse(localStorage.getItem('ce_recentcomp')||'[]');
+  state.searchHistory = JSON.parse(localStorage.getItem('ce_searchhist')||'[]');
+  state.savedComparisons = JSON.parse(localStorage.getItem('ce_saved')||'[]');
+  const theme = localStorage.getItem('ce_theme');
+  if(theme) document.documentElement.setAttribute('data-theme', theme);
+}catch(e){}
+function save(){try{
+  localStorage.setItem('ce_compare',JSON.stringify(state.compare));
+  localStorage.setItem('ce_wishlist',JSON.stringify(state.wishlist));
+  localStorage.setItem('ce_recent',JSON.stringify(state.recent));
+  localStorage.setItem('ce_recentcomp',JSON.stringify(state.recentCompares));
+  localStorage.setItem('ce_searchhist',JSON.stringify(state.searchHistory));
+  localStorage.setItem('ce_saved',JSON.stringify(state.savedComparisons));
+}catch(e){}}
+const POPULAR_SEARCHES = ['iPhone','Running shoes','Laptop under 60000','Headphones','Face serum'];
+const LANG = {
+en:{nav_home:'Home',nav_categories:'Categories',nav_browse:'Browse',nav_ai:'AI Assistant',
+  hero_title1:'Stop Searching Everywhere.',hero_title2:'Compare Everything Here.',
+  hero_sub:'Compare prices, quality, features, ratings and reviews from multiple shopping platforms with one simple search.',
+  tagline:'One Search. Every Store. Smarter Shopping.',search_placeholder:'Search products like laptops, smartphones, headphones...',search_btn:'Search',
+  popular_categories:'Popular Categories',trending:'Trending Products',recently_viewed:'Recently Viewed',recently_compared:'Recently Compared',
+  all_products:'All Products',all_categories:'All Categories',all_brands:'All Brands',any_price:'Any Price',sort_by:'Sort by',
+  price_low_high:'Price: Low to High',price_high_low:'Price: High to Low',rating_high_low:'Rating: High to Low',popularity:'Popularity',
+  any_rating:'Any Rating',reset:'Reset',how_it_works:'How It Works',
+  how1_t:'Search',how1_d:'Find products by name, brand or category.',how2_t:'Select',how2_d:'Add 2–4 products to your comparison.',
+  how3_t:'Compare',how3_d:'View a detailed side-by-side table.',how4_t:'Decide',how4_d:'Get a data-based recommendation.',
+  company:'Company',about_us:'About Us',contact:'Contact',legal:'Legal',privacy:'Privacy Policy',help:'Help',
+  clear_all:'Clear All',compare:'Compare',settings_title:'⚙️ Settings',language:'Language',dark_mode:'Dark Mode',toggle_theme:'Toggle Theme',
+  your_data:'Your Data',clear_data:'Clear Wishlist, History & Saved Comparisons',
+  wishlist_btn:'Wishlist',saved_btn:'Saved',add_compare_btn:'Compare',added_btn:'Added',no_products:'No products found.',
+  login_title:'👤 Log In to CompareHub',login_note:'Demo login only — stored on this device, not a real account system.',login_btn:'Log In',nav_profile:'Profile',
+  login_tab:'Log In',signup_tab:'Create Account',signup_btn:'Create Account',full_name:'Full Name',name_err:'Please enter your name',
+  email_label:'Email',email_err:'Please enter a valid email',password_label:'Password',pass_err:'Password must be at least 6 characters',
+  remember_me:'Remember me on this device',or_continue:'or continue with',continue_google:'Continue with Google',continue_apple:'Continue with Apple',back_btn:'Back',back_home:'Back to Home'},
+hi:{nav_home:'होम',nav_categories:'श्रेणियाँ',nav_browse:'ब्राउज़ करें',nav_ai:'AI सहायक',
+  hero_title1:'हर जगह ढूँढना बंद करें।',hero_title2:'यहीं सब कुछ Compare करें।',
+  hero_sub:'कई शॉपिंग प्लेटफ़ॉर्म की कीमतें, क्वालिटी, फीचर्स, रेटिंग और रिव्यू एक ही सर्च में compare करें।',
+  tagline:'एक सर्च। हर स्टोर। स्मार्ट शॉपिंग।',search_placeholder:'लैपटॉप, स्मार्टफोन, हेडफोन जैसे प्रोडक्ट्स खोजें...',search_btn:'खोजें',
+  popular_categories:'लोकप्रिय श्रेणियाँ',trending:'ट्रेंडिंग प्रोडक्ट्स',recently_viewed:'हाल ही में देखे गए',recently_compared:'हाल ही में compare किए गए',
+  all_products:'सभी प्रोडक्ट्स',all_categories:'सभी श्रेणियाँ',all_brands:'सभी ब्रांड्स',any_price:'कोई भी कीमत',sort_by:'इसके अनुसार क्रमबद्ध करें',
+  price_low_high:'कीमत: कम से ज़्यादा',price_high_low:'कीमत: ज़्यादा से कम',rating_high_low:'रेटिंग: ज़्यादा से कम',popularity:'लोकप्रियता',
+  any_rating:'कोई भी रेटिंग',reset:'रीसेट करें',how_it_works:'यह कैसे काम करता है',
+  how1_t:'खोजें',how1_d:'नाम, ब्रांड या श्रेणी से प्रोडक्ट खोजें।',how2_t:'चुनें',how2_d:'2–4 प्रोडक्ट्स को compare में जोड़ें।',
+  how3_t:'Compare करें',how3_d:'विस्तृत साइड-बाय-साइड टेबल देखें।',how4_t:'फ़ैसला लें',how4_d:'डेटा-आधारित सिफ़ारिश पाएं।',
+  company:'कंपनी',about_us:'हमारे बारे में',contact:'संपर्क करें',legal:'नियम व शर्तें',privacy:'प्राइवेसी पॉलिसी',help:'सहायता',
+  clear_all:'सभी हटाएं',compare:'Compare करें',settings_title:'⚙️ सेटिंग्स',language:'भाषा',dark_mode:'डार्क मोड',toggle_theme:'थीम बदलें',
+  your_data:'आपका डेटा',clear_data:'विशलिस्ट, हिस्ट्री और सेव्ड Comparisons हटाएं',
+  wishlist_btn:'विशलिस्ट',saved_btn:'सेव्ड',add_compare_btn:'Compare',added_btn:'जोड़ा गया',no_products:'कोई प्रोडक्ट नहीं मिला।',
+  login_title:'👤 CompareHub में लॉग इन करें',login_note:'यह केवल डेमो लॉगिन है — इस डिवाइस पर सेव होता है, असली अकाउंट सिस्टम नहीं।',login_btn:'लॉग इन करें',nav_profile:'प्रोफ़ाइल',
+  login_tab:'लॉग इन',signup_tab:'अकाउंट बनाएं',signup_btn:'अकाउंट बनाएं',full_name:'पूरा नाम',name_err:'कृपया अपना नाम डालें',
+  email_label:'ईमेल',email_err:'कृपया सही ईमेल डालें',password_label:'पासवर्ड',pass_err:'पासवर्ड कम से कम 6 अक्षर का होना चाहिए',
+  remember_me:'इस डिवाइस पर याद रखें',or_continue:'या इसके साथ जारी रखें',continue_google:'Google से जारी रखें',continue_apple:'Apple से जारी रखें',back_btn:'वापस',back_home:'होम पर वापस जाएं'}
+};
+let currentLang = 'en';
+let currentUser = null;
+try{
+  currentLang = localStorage.getItem('ce_lang') || 'en';
+  currentUser = JSON.parse(localStorage.getItem('ce_user')||'null');
+}catch(e){}
+function renderAuthArea(){
+  const el = document.getElementById('authArea');
+  if(currentUser){
+    const initial = currentUser.name.trim().charAt(0).toUpperCase() || '?';
+    el.innerHTML = `<div class="userchip" onclick="showPage('profile')"><div class="avatar">${initial}</div>${currentUser.name.split(' ')[0]}</div>`;
+  } else {
+    el.innerHTML = `<button class="btn" onclick="openLogin()" data-i18n="login_btn">Log In</button>`;
+    el.querySelector('button').textContent = t('login_btn');
+  }
+}
+function openLogin(){ document.getElementById('loginModal').classList.add('show'); }
+let authTab='login';
+function switchAuthTab(tab){
+  authTab=tab;
+  document.getElementById('tabLogin').classList.toggle('active',tab==='login');
+  document.getElementById('tabSignup').classList.toggle('active',tab==='signup');
+  document.getElementById('loginSubmitBtn').textContent = t(tab==='login'?'login_btn':'signup_btn');
+}
+function togglePw(){ const f=document.getElementById('loginPass'); f.type = f.type==='password'?'text':'password'; }
+function socialDemo(){ toast(currentLang==='hi'?'डेमो में सोशल लॉगिन उपलब्ध नहीं है':'Social login is demo-only and not connected here'); }
+function doLogin(){
+  const name = document.getElementById('loginName').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  let valid = true;
+  document.getElementById('nameErr').style.display = name ? 'none' : 'block'; if(!name) valid=false;
+  document.getElementById('emailErr').style.display = emailOk ? 'none' : 'block'; if(!emailOk) valid=false;
+  document.getElementById('passErr').style.display = pass.length>=6 ? 'none' : 'block'; if(pass.length<6) valid=false;
+  if(!valid) return;
+  const btn = document.getElementById('loginSubmitBtn');
+  const original = btn.textContent;
+  btn.innerHTML = '<span class="loader"></span>'; btn.disabled = true;
+  setTimeout(()=>{
+    currentUser = {name, email};
+    try{
+      if(document.getElementById('rememberMe').checked) localStorage.setItem('ce_user', JSON.stringify(currentUser));
+    }catch(e){}
+    loginGate=false; renderAuthArea(); closeModal('loginModal'); btn.disabled=false; btn.textContent=original;
+    toast((currentLang==='hi'?'स्वागत है, ':'Welcome, ')+name+'!');
+  }, 600);
+}
+function logout(){ currentUser=null; try{localStorage.removeItem('ce_user');}catch(e){} renderAuthArea(); showPage('home'); toast(currentLang==='hi'?'लॉग आउट हो गए':'Logged out'); }
+function renderProfile(){
+  const el = document.getElementById('profileSection');
+  if(!currentUser){
+    el.innerHTML = `<div class="empty"><div class="ic">👤</div><p style="margin-bottom:14px">${currentLang==='hi'?'प्रोफ़ाइल देखने के लिए लॉग इन करें।':'Log in to view your profile.'}</p><button class="btn" onclick="openLogin()">${t('login_btn')}</button></div>`;
+    return;
+  }
+  const initial = currentUser.name.trim().charAt(0).toUpperCase() || '?';
+  el.innerHTML = `<div class="profilecard">
+    <div class="avatar">${initial}</div>
+    <h2>${currentUser.name}</h2>
+    <p style="color:var(--muted);font-size:.85rem">${currentUser.email}</p>
+    <div class="statrow">
+      <div><b>${state.wishlist.length}</b><span>${t('wishlist_btn')}</span></div>
+      <div><b>${state.savedComparisons.length}</b><span>${t('saved_btn')}</span></div>
+      <div><b>${state.recent.length}</b><span>${currentLang==='hi'?'हाल में देखे':'Recent'}</span></div>
+    </div>
+    <button class="btn secondary" onclick="logout()">${currentLang==='hi'?'लॉग आउट':'Log Out'}</button>
+  </div>`;
+}
+function t(key){ return (LANG[currentLang] && LANG[currentLang][key]) || LANG.en[key] || key; }
+function applyLanguage(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{ el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  const sel=document.getElementById('langSelect'); if(sel) sel.value=currentLang;
+  refreshAll(); renderPopular(); renderAuthArea();
+  if(document.getElementById('page-profile').classList.contains('active')) renderProfile();
+}
+function setLang(l){ currentLang=l; try{localStorage.setItem('ce_lang',l);}catch(e){} applyLanguage(); }
+function openSettings(){ document.getElementById('settingsModal').classList.add('show'); const s=document.getElementById('langSelect'); if(s) s.value=currentLang; }
+function clearAllData(){
+  state.wishlist=[]; state.searchHistory=[]; state.savedComparisons=[]; state.recent=[]; state.recentCompares=[];
+  save(); refreshAll(); updateSavedBadge(); renderRecent(); renderRecentCompares();
+  toast(currentLang==='hi' ? 'डेटा हटा दिया गया' : 'Data cleared');
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur==='dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try{localStorage.setItem('ce_theme', next);}catch(e){}
+}
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1800);
+}
+function go(id){document.getElementById(id).scrollIntoView({behavior:'smooth'});}
+const PAGES = ['home','browse','profile'];
+function showPage(name){
+  const isCategoriesAnchor = name==='categories'; // categories lives inside home — scroll there, don't make a separate history entry
+  const pageName = isCategoriesAnchor ? 'home' : (PAGES.includes(name) ? name : 'home');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+pageName).classList.add('active');
+  document.querySelectorAll('.navlinks button').forEach(b=>b.classList.toggle('active', b.dataset.page===(isCategoriesAnchor?'categories':pageName)));
+  if(location.hash.slice(1)!==pageName) location.hash = pageName;
+  window.scrollTo({top:0,behavior:'instant'});
+  if(pageName==='browse') renderResults();
+  if(pageName==='profile') renderProfile();
+  if(isCategoriesAnchor) setTimeout(()=>go('categories'),60);
+}
+window.addEventListener('hashchange', ()=>showPage(location.hash.slice(1)||'home'));
+function star(r){return '★'.repeat(Math.round(r))+'☆'.repeat(5-Math.round(r));}
+function money(n){return '₹'+n.toLocaleString('en-IN');}
+function discPct(p,o){return o>p?Math.round((o-p)/o*100):0;}
+
+function productCard(p){
+  const inWish = state.wishlist.includes(p.id);
+  const inComp = state.compare.includes(p.id);
+  return `<div class="card">
+    <div class="emoji" onclick="viewProduct(${p.id})">${p.emoji}</div>
+    <h3 onclick="viewProduct(${p.id})">${p.name}</h3>
+    <div class="brand">${p.brand} · ${CATS.find(c=>c.id===p.cat)?.name||p.cat}</div>
+    <div class="stars">${star(p.rating)} <span style="color:var(--muted)">(${p.reviews})</span></div>
+    <div><span class="price">${money(p.price)}</span>${p.orig>p.price?`<span class="orig">${money(p.orig)}</span> <span class="disc">${discPct(p.price,p.orig)}% off</span>`:''}</div>
+    <div class="cardbtns">
+      <button class="${inWish?'inwishlist':''}" onclick="toggleWishlist(${p.id})">${inWish?'❤️ '+t('saved_btn'):'🤍 '+t('wishlist_btn')}</button>
+      <button class="${inComp?'incompare':''}" onclick="toggleCompare(${p.id})">${inComp?'✓ '+t('added_btn'):'+ '+t('add_compare_btn')}</button>
+    </div>
+  </div>`;
+}
+function renderGrid(elId, list){document.getElementById(elId).innerHTML = list.length? list.map(productCard).join('') : `<div class="empty"><div class="ic">🔍</div>${t('no_products')}</div>`;}
+
+function initCats(){
+  document.getElementById('catGrid').innerHTML = CATS.map(c=>`<div class="catcard" onclick="filterCat('${c.id}')"><div class="ic">${c.icon}</div>${c.name}</div>`).join('');
+  const sel = document.getElementById('catFilter');
+  CATS.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;sel.appendChild(o);});
+  const brandSel = document.getElementById('brandFilter');
+  [...new Set(PRODUCTS.map(p=>p.brand))].sort().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;brandSel.appendChild(o);});
+}
+function renderPopular(){
+  document.getElementById('popularSearches').innerHTML = `<span style="color:var(--muted);font-size:.8rem;align-self:center">Popular:</span>` +
+    POPULAR_SEARCHES.map(s=>`<span class="chip" style="cursor:pointer" onclick="document.getElementById('searchInput').value='${s}';doSearch()">${s}</span>`).join('');
+}
+function resetFilters(){
+  document.getElementById('catFilter').value='';document.getElementById('brandFilter').value='';
+  document.getElementById('priceFilter').value='';document.getElementById('sortFilter').value='';
+  document.getElementById('ratingFilter').value='';document.getElementById('searchInput').value='';
+  renderResults();
+}
+function filterCat(id){document.getElementById('catFilter').value=id;showPage('browse');}
+function doSearch(){
+  const q=document.getElementById('searchInput').value.trim();
+  if(q){
+    state.searchHistory = [q, ...state.searchHistory.filter(h=>h.toLowerCase()!==q.toLowerCase())].slice(0,6);
+    save();
+  }
+  showPage('browse');document.getElementById('suggestBox').style.display='none';
+}
+function onSearchInput(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const box=document.getElementById('suggestBox');
+  if(!q){
+    if(state.searchHistory.length){
+      box.innerHTML = `<div style="padding:8px 16px;font-size:.72rem;color:var(--muted)">Recent searches</div>` +
+        state.searchHistory.map(h=>`<div onclick="document.getElementById('searchInput').value='${h.replace(/'/g,"")}'; doSearch()">🕒 ${h}</div>`).join('');
+      box.style.display='block';
+    } else box.style.display='none';
+    return;
+  }
+  const matches=PRODUCTS.filter(p=>p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q)).slice(0,5);
+  if(matches.length){
+    box.innerHTML=matches.map(p=>`<div onclick="document.getElementById('searchInput').value='${p.name.replace(/'/g,"")}'; doSearch()">${p.emoji} ${p.name} <span style="color:var(--muted)">· ${p.brand}</span></div>`).join('');
+    box.style.display='block';
+  } else box.style.display='none';
+}
+function renderResults(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const cat=document.getElementById('catFilter').value;
+  const brand=document.getElementById('brandFilter').value;
+  const priceRange=document.getElementById('priceFilter').value;
+  const sort=document.getElementById('sortFilter').value;
+  const minRating=parseFloat(document.getElementById('ratingFilter').value)||0;
+  let [pmin,pmax] = priceRange ? priceRange.split('-').map(Number) : [0,Infinity];
+  let list = PRODUCTS.filter(p=>
+    (!q || p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q) || p.cat.includes(q)) &&
+    (!cat || p.cat===cat) && (!brand || p.brand===brand) &&
+    (p.price>=pmin && p.price<=pmax) && (p.rating>=minRating)
+  );
+  if(sort==='priceAsc') list.sort((a,b)=>a.price-b.price);
+  if(sort==='priceDesc') list.sort((a,b)=>b.price-a.price);
+  if(sort==='ratingDesc') list.sort((a,b)=>b.rating-a.rating);
+  if(sort==='popular') list.sort((a,b)=>b.reviews-a.reviews);
+  document.getElementById('resultsTitle').textContent = q? `Results for "${q}"` : (cat? CATS.find(c=>c.id===cat).name : 'All Products');
+  document.getElementById('resultsCount').textContent = list.length+' products';
+  renderGrid('resultsGrid', list);
+  document.getElementById('results').style.display='block';
+}
+function initTrending(){renderGrid('trendGrid', [...PRODUCTS].sort((a,b)=>b.reviews-a.reviews).slice(0,4));}
+
+function toggleWishlist(id){
+  const i=state.wishlist.indexOf(id);
+  if(i>-1){state.wishlist.splice(i,1); toast('Removed from wishlist');}
+  else {state.wishlist.push(id); toast('Added to wishlist ❤️');}
+  save(); refreshAll();
+}
+function toggleCompare(id){
+  const i=state.compare.indexOf(id);
+  if(i>-1){state.compare.splice(i,1);}
+  else {
+    if(state.compare.length>=4){toast('You can compare up to 4 products');return;}
+    state.compare.push(id); toast('Added to comparison');
+  }
+  save(); refreshAll(); renderCompbar();
+}
+function clearCompare(){state.compare=[];save();refreshAll();renderCompbar();}
+function renderCompbar(){
+  const bar=document.getElementById('compbar');
+  if(state.compare.length===0){bar.classList.remove('show');return;}
+  bar.classList.add('show');
+  document.getElementById('compChips').innerHTML = state.compare.map(id=>{
+    const p=PRODUCTS.find(x=>x.id===id);
+    return `<div class="chip">${p.emoji} ${p.name} <b onclick="toggleCompare(${id})">✕</b></div>`;
+  }).join('');
+  const btn=document.getElementById('compareBtn');
+  btn.disabled = state.compare.length<2;
+  btn.textContent = `Compare (${state.compare.length})`;
+}
+function refreshAll(){
+  initTrending();
+  if(document.getElementById('results').style.display==='block') renderResults();
+  updateWishBadge();
+}
+function updateWishBadge(){
+  const b=document.getElementById('wbadge');
+  if(state.wishlist.length){b.style.display='inline';b.textContent=state.wishlist.length;}
+  else b.style.display='none';
+}
+function openWishlist(){
+  pushModalState();
+  const list = PRODUCTS.filter(p=>state.wishlist.includes(p.id));
+  document.getElementById('wishGrid').innerHTML = list.length? list.map(productCard).join('') : `<div class="empty"><div class="ic">💔</div>No items saved yet.</div>`;
+  document.getElementById('wishlistModal').classList.add('show');
+}
+let loginGate=true;
+function closeModal(id){ if(id==='loginModal' && loginGate) return; document.getElementById(id).classList.remove('show');}
+function pushModalState(){ try{ history.pushState({ceModal:true}, ''); }catch(e){} }
+function goBack(){ history.back(); }
+window.addEventListener('popstate', ()=>{
+  document.querySelectorAll('.modal.show').forEach(m=>{ if(m.id!=='loginModal') m.classList.remove('show'); });
+});
+
+function viewProduct(id){
+  pushModalState();
+  const p=PRODUCTS.find(x=>x.id===id);
+  if(!state.recent.includes(id)){state.recent.unshift(id); state.recent=state.recent.slice(0,4); save();}
+  renderRecent();
+  document.getElementById('detailBox').innerHTML = `
+    <button class="closex" onclick="closeModal('detailModal')">✕</button>
+    <button class="btn secondary" style="position:absolute;top:16px;left:16px;padding:7px 14px;font-size:.8rem" onclick="goBack()">← <span data-i18n="back_btn">Back</span></button>
+    <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:26px;margin-top:34px" id="pdgrid">
+    <div><div class="pdimg">${p.emoji}</div></div>
+    <div>
+      <h2>${p.name}</h2>
+      <div class="brand">${p.brand}</div>
+      <div class="stars">${star(p.rating)} ${p.rating} (${p.reviews} reviews)</div>
+      <div style="margin:10px 0"><span class="price">${money(p.price)}</span>${p.orig>p.price?`<span class="orig">${money(p.orig)}</span> <span class="disc">${discPct(p.price,p.orig)}% off</span>`:''}</div>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px">Specs: RAM ${p.ram} · Storage ${p.storage} · ${p.processor} · Battery ${p.battery} · Display ${p.display} · Warranty ${p.warranty}</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${p.features.map(f=>`<span style="background:var(--accent-bg);padding:4px 10px;border-radius:20px;font-size:.75rem">${f}</span>`).join('')}</div>
+      <div class="cardbtns" style="max-width:280px">
+        <button class="${state.wishlist.includes(id)?'inwishlist':''}" onclick="toggleWishlist(${id});viewProduct(${id})">${state.wishlist.includes(id)?'❤️ Saved':'🤍 Wishlist'}</button>
+        <button class="${state.compare.includes(id)?'incompare':''}" onclick="toggleCompare(${id});viewProduct(${id});renderCompbar()">${state.compare.includes(id)?'✓ Added':'+ Compare'}</button>
+      </div>
+    </div></div>
+    <h3 style="margin-top:22px">🧾 Reviews &amp; Quality <span class="databadge">DEMO</span></h3>
+    <p style="font-size:.75rem;color:var(--muted);margin:4px 0 10px">Sample review summary for this prototype — not sourced from real verified customer reviews.</p>
+    <div class="proscons" style="margin-top:0">
+        <div><h5 style="color:var(--green)">👍 Commonly appreciated</h5>${p.pros.map(x=>`<div style="font-size:.8rem">• ${x}</div>`).join('')}</div>
+        <div><h5 style="color:var(--red)">👎 Common complaints</h5>${p.cons.map(x=>`<div style="font-size:.8rem">• ${x}</div>`).join('')}</div>
+    </div>
+    <h3 style="margin-top:22px">🏬 Mode A: Same Product Across Stores <span class="databadge">DEMO</span></h3>
+    <p style="font-size:.75rem;color:var(--muted);margin:4px 0 10px">Illustrative store prices for this session — not live data. No verified store/API is connected in this prototype, so no real external links are shown.</p>
+    <div style="overflow-x:auto;margin-top:10px">${storeTable(p)}</div>
+    <h3 style="margin-top:22px">📈 Price History <span class="databadge">DEMO</span></h3>
+    <p style="font-size:.75rem;color:var(--muted);margin:4px 0 10px">Sample 6-week trend, generated for this prototype — not real historical price data.</p>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:90px;margin-top:10px;padding:0 6px">${priceHistory(p).map((v,i,a)=>{
+      const max=Math.max(...a), min=Math.min(...a);
+      const h = 20 + (v-min)/(max-min||1)*60;
+      return `<div style="flex:1;text-align:center"><div style="background:linear-gradient(180deg,var(--blue),var(--purple));border-radius:4px 4px 0 0;height:${h}px" title="${money(v)}"></div><div style="font-size:.65rem;color:var(--muted);margin-top:4px">W${i+1}</div></div>`;
+    }).join('')}</div>
+    <div style="display:flex;gap:20px;margin-top:10px;font-size:.78rem;color:var(--muted)">
+      <div>🔼 Highest: <b style="color:var(--text)">${money(Math.max(...priceHistory(p)))}</b></div>
+      <div>🔽 Lowest: <b style="color:var(--text)">${money(Math.min(...priceHistory(p)))}</b></div>
+    </div>`;
+  document.getElementById('detailModal').classList.add('show');
+}
+function renderRecent(){
+  const sec=document.getElementById('recentSec');
+  if(state.recent.length===0){sec.style.display='none';return;}
+  sec.style.display='block';
+  renderGrid('recentGrid', state.recent.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean));
+}
+
+function storeTable(p){
+  const rows = storeRows(p);
+  const inStockPrices = rows.filter(r=>r.avail==='In stock').map(r=>r.price+r.delivery);
+  const minTotal = Math.min(...inStockPrices);
+  return `<table><thead><tr><th>Store</th><th>Price</th><th>Delivery</th><th>Coupon</th><th>Est. Delivery</th><th>Return</th><th>Availability</th><th></th></tr></thead><tbody>
+    ${rows.map(r=>`<tr${r.avail!=='In stock'?' style="opacity:.5"':''}>
+      <td><b>${r.store}</b></td>
+      <td class="${(r.price+r.delivery)===minTotal && r.avail==='In stock'?'best':''}">${money(r.price)}${r.delivery?` + ${money(r.delivery)} del.`:' (free del.)'}</td>
+      <td>${r.delivery?money(r.delivery):'Free'}</td>
+      <td>${r.coupon}</td>
+      <td>${r.eta}</td>
+      <td>${r.ret}</td>
+      <td>${r.avail}</td>
+      <td>${r.avail==='In stock'?'<span style="color:var(--blue);font-size:.78rem">View on store (demo) →</span>':'—'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function storeRows(p){
+  // Deterministic demo price variation per store — illustrative only, not live data.
+  return STORES.map((s,i)=>{
+    const mult = 1 + ((i*7 + p.id*3) % 11 - 5)/100; // -5%..+5%
+    const price = Math.round(p.price*mult/10)*10;
+    const delivery = (i%3===0)?0:(i%2===0?49:99);
+    const coupon = (p.id+i)%4===0 ? `₹${100+i*50} off` : '—';
+    const eta = 2+((i+p.id)%5);
+    return {store:s, price, delivery, coupon, eta:eta+'-'+(eta+2)+' days', ret:(i%2===0?'10-day return':'7-day return'), avail:(i*p.id)%9===0?'Out of stock':'In stock'};
+  });
+}
+function priceHistory(p){
+  // Demo illustrative data (last 6 weeks) — not sourced from a live price-tracking feed.
+  const base=p.orig;
+  const vals=[];
+  for(let w=0; w<6; w++){
+    const trend = base - (base-p.price)*(w/5);
+    const wobble = ((w*p.id)%7 - 3)*20;
+    vals.push(Math.round(trend + wobble));
+  }
+  return vals;
+}
+function bestKey(list, key, lower){
+  const vals = list.map(p=>p[key]);
+  const best = lower ? Math.min(...vals) : Math.max(...vals);
+  return best;
+}
+function openCompare(){
+  const list = state.compare.map(id=>PRODUCTS.find(p=>p.id===id));
+  if(list.length<2) return;
+  pushModalState();
+  state.recentCompares.unshift(list.map(p=>p.name).join(' vs '));
+  state.recentCompares = state.recentCompares.slice(0,3); save(); renderRecentCompares();
+  const minPrice = bestKey(list,'price',true);
+  const maxRating = bestKey(list,'rating',false);
+  // best value: lowest price-per-rating-point among comparable
+  let bestValue = list[0];
+  list.forEach(p=>{ if((p.price/p.rating) < (bestValue.price/bestValue.rating)) bestValue=p; });
+  let bestFeatures = list[0];
+  list.forEach(p=>{ if(p.features.length > bestFeatures.features.length) bestFeatures=p; });
+  const rows = [
+    ['Image', p=>`<div style="font-size:1.8rem">${p.emoji}</div>`],
+    ['Brand', p=>p.brand],
+    ['Price', p=>`<span class="${p.price===minPrice?'best':''}">${money(p.price)}</span>`],
+    ['Original Price', p=>money(p.orig)],
+    ['Discount', p=>discPct(p.price,p.orig)+'%'],
+    ['Rating', p=>`<span class="${p.rating===maxRating?'best':''}">${star(p.rating)} ${p.rating}</span>`],
+    ['Reviews', p=>p.reviews],
+    ['Key Features', p=>p.features.join(', ')],
+    ['RAM', p=>p.ram],['Storage', p=>p.storage],['Processor', p=>p.processor],
+    ['Battery', p=>p.battery],['Display', p=>p.display],['Warranty', p=>p.warranty]
+  ].filter(([label])=>{
+    if(['RAM','Storage','Processor','Battery','Display'].includes(label)){
+      return list.some(p=>p[label.toLowerCase()==='ram'?'ram':label.toLowerCase()] !== '-');
+    }
+    return true;
+  });
+  const tableHtml = `<table><thead><tr><th>Spec</th>${list.map(p=>`<th>${p.name}</th>`).join('')}</tr></thead><tbody>
+    ${rows.map(([label,fn])=>`<tr><td><b>${label}</b></td>${list.map(p=>`<td>${fn(p)}</td>`).join('')}</tr>`).join('')}
+  </tbody></table>`;
+  const recHtml = `<div class="recrow">
+    <div class="reccard"><b>💰 Lowest Price</b>${list.find(p=>p.price===minPrice).name}<p>Priced at ${money(minPrice)}, the lowest among selected products.</p></div>
+    <div class="reccard"><b>⭐ Highest Rated</b>${list.find(p=>p.rating===maxRating).name}<p>Rated ${maxRating}★, the highest customer rating here.</p></div>
+    <div class="reccard"><b>🏆 Best Value for Money</b>${bestValue.name}<p>Best balance of price vs. rating among the selected products.</p></div>
+    <div class="reccard"><b>✨ Best Features</b>${bestFeatures.name}<p>Offers the most listed features (${bestFeatures.features.length}).</p></div>
+  </div>`;
+  document.getElementById('compareBox').innerHTML = `
+    <button class="closex" onclick="closeModal('compareModal')">✕</button>
+    <h2 style="margin-bottom:6px">⚖️ Mode B: Compare Different Products <span class="databadge" style="background:var(--accent-bg);color:var(--blue)">up to 4</span></h2>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:10px">Based on actual listed demo data for the ${list.length} selected products — recommendations are rule-based, not AI-generated.</p>
+    ${recHtml}
+    <div style="overflow-x:auto">${tableHtml}</div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn secondary" onclick="clearCompare();closeModal('compareModal')">Clear All</button>
+      <button class="btn secondary" onclick="saveComparison()">💾 Save Comparison</button>
+      <button class="btn" onclick="closeModal('compareModal')">Done</button>
+    </div>`;
+  document.getElementById('compareModal').classList.add('show');
+}
+function renderRecentCompares(){
+  const sec=document.getElementById('recentCompSec');
+  if(state.recentCompares.length===0){sec.style.display='none';return;}
+  sec.style.display='block';
+  document.getElementById('recentCompList').innerHTML = state.recentCompares.map(c=>`<div class="card" style="margin-bottom:10px">${c}</div>`).join('');
+}
+
+function saveComparison(){
+  const list = state.compare.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean);
+  if(list.length<2) return;
+  state.savedComparisons.unshift({id:Date.now(), name:list.map(p=>p.name).join(' vs '), ids:[...state.compare]});
+  state.savedComparisons = state.savedComparisons.slice(0,10);
+  save(); updateSavedBadge(); toast('Comparison saved 💾');
+}
+function updateSavedBadge(){
+  const b=document.getElementById('sbadge');
+  if(state.savedComparisons.length){b.style.display='inline';b.textContent=state.savedComparisons.length;}
+  else b.style.display='none';
+}
+function openSaved(){
+  pushModalState();
+  const el=document.getElementById('savedList');
+  el.innerHTML = state.savedComparisons.length ? state.savedComparisons.map(sc=>`
+    <div class="card" style="margin-bottom:10px;flex-direction:row;align-items:center;justify-content:space-between">
+      <div>${sc.name}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn secondary" style="font-size:.75rem;padding:6px 10px" onclick="state.compare=[...${JSON.stringify(sc.ids)}];save();renderCompbar();closeModal('savedModal');openCompare()">Load</button>
+        <button class="btn secondary" style="font-size:.75rem;padding:6px 10px" onclick="removeSaved(${sc.id})">Delete</button>
+      </div>
+    </div>`).join('') : `<div class="empty"><div class="ic">💾</div>No saved comparisons yet. Save one from the Compare screen.</div>`;
+  document.getElementById('savedModal').classList.add('show');
+}
+function removeSaved(id){
+  state.savedComparisons = state.savedComparisons.filter(s=>s.id!==id);
+  save(); updateSavedBadge(); openSaved();
+}
+function openAssistant(){pushModalState();document.getElementById('assistantModal').classList.add('show');document.getElementById('aiInput').focus();}
+function askAssistant(){
+  const q = document.getElementById('aiInput').value.toLowerCase();
+  const out = document.getElementById('aiResult');
+  if(!q.trim()){out.innerHTML='<div class="empty">Type a question to get started.</div>';return;}
+  const budgetMatch = q.match(/(\d[\d,]{2,})/);
+  const budget = budgetMatch ? parseInt(budgetMatch[1].replace(/,/g,'')) : null;
+  const cat = CATS.find(c => q.includes(c.id) || q.includes(c.name.toLowerCase()) ||
+    (c.id==='smartphones' && (q.includes('phone')||q.includes('mobile'))) ||
+    (c.id==='headphones' && q.includes('headphone')) ||
+    (c.id==='laptops' && q.includes('laptop')) ||
+    (c.id==='shoes' && q.includes('shoe')));
+  let pool = PRODUCTS.slice();
+  if(cat) pool = pool.filter(p=>p.cat===cat.id);
+  if(budget) pool = pool.filter(p=>p.price<=budget);
+  if(pool.length===0){
+    out.innerHTML = `<div class="empty"><div class="ic">🤔</div>No matching demo products found${budget?` under ${money(budget)}`:''}${cat?` in ${cat.name}`:''}. Try a different budget or category.</div>`;
+    return;
+  }
+  const bestOverall = [...pool].sort((a,b)=>(b.rating*Math.log(b.reviews+1)) - (a.rating*Math.log(a.reviews+1)))[0];
+  const bestBudget = [...pool].sort((a,b)=>a.price-b.price)[0];
+  const bestRating = [...pool].sort((a,b)=>b.rating-a.rating)[0];
+  let bestValue = pool[0]; pool.forEach(p=>{ if((p.price/p.rating) < (bestValue.price/bestValue.rating)) bestValue=p; });
+  const cards = [
+    ['🏆 Best Overall', bestOverall, `Strong balance of rating (${bestOverall.rating}★) and review volume (${bestOverall.reviews}).`],
+    ['💰 Best Budget', bestBudget, `Lowest price in this set at ${money(bestBudget.price)}.`],
+    ['⭐ Best Rating', bestRating, `Highest customer rating at ${bestRating.rating}★.`],
+    ['🏷️ Best Value for Money', bestValue, `Best price-to-rating ratio among matching products.`]
+  ];
+  out.innerHTML = `<p style="font-size:.8rem;color:var(--muted);margin-bottom:10px">Based on ${pool.length} matching demo product(s)${cat?` in ${cat.name}`:''}${budget?` under ${money(budget)}`:''}:</p>
+  <div class="recrow">${cards.map(([label,p,why])=>`<div class="reccard"><b>${label}</b>${p.emoji} ${p.name} — ${money(p.price)}<p>${why}</p><button class="btn secondary" style="margin-top:8px;font-size:.75rem;padding:6px 10px" onclick="closeModal('assistantModal');viewProduct(${p.id})">View details</button></div>`).join('')}</div>`;
+}
+function onPhotoSelected(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    const url = ev.target.result;
+    const area = document.getElementById('photoPreviewArea');
+    const catOptions = CATS.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+    area.innerHTML = `<div class="photopreview">
+      <img src="${url}" alt="photo">
+      <div style="text-align:left;flex:1">
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">${currentLang==='hi'?'फोटो से सर्च (डेमो): कोई लाइव इमेज-पहचान मॉडल जुड़ा नहीं है — कृपया श्रेणी चुनें।':'Photo search (demo): no live image-recognition model is connected here — please pick a category.'}</div>
+        <div style="display:flex;gap:6px">
+          <select id="photoCat" style="flex:1;padding:6px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)">${catOptions}</select>
+          <button class="btn" style="padding:6px 12px;font-size:.78rem" onclick="photoSearchGo()">${t('search_btn')}</button>
+        </div>
+      </div>
+    </div>`;
+  };
+  reader.readAsDataURL(file);
+}
+function photoSearchGo(){
+  const cat = document.getElementById('photoCat').value;
+  document.getElementById('searchInput').value='';
+  document.getElementById('catFilter').value = cat;
+  showPage('browse');
+  toast(currentLang==='hi'?'डेमो विज़ुअल सर्च के नतीजे':'Demo visual search results');
+}
+// init
+initCats(); initTrending(); renderCompbar(); updateWishBadge(); renderRecent(); renderRecentCompares(); renderPopular(); updateSavedBadge();
+applyLanguage();
+showPage(location.hash.slice(1) || 'home');
+openLogin(); // sign-in first on every visit, even if a saved session exists
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.searchbar')) document.getElementById('suggestBox').style.display='none';
+});
+</script>
+</body>
+</html>
